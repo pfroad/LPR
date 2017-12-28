@@ -14,13 +14,14 @@ class TrainData:
 
     def data(self):
         data = []
-        label = []
+        res = []
         for i in range(self.batch_size):
             num, img = self.gen_sample()
             data.append(img)
-            label.append(num)
+            data.append(num)
+            res.append(data)
 
-        return data, label
+        return res
 
     def rand_range(self, lo, hi):
         return lo + gp.random(hi - lo)

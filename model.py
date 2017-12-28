@@ -11,7 +11,7 @@ import numpy as np
 # config = tf.ConfigProto()
 #
 # set_s
-def inference(images, keep_prob):
+def inference(image, keep_prob):
     with tf.variable_scope("conv1") as scope:
         weights = tf.get_variable('weights',
                                   shape=[3, 3, 3, 32],
@@ -23,7 +23,7 @@ def inference(images, keep_prob):
                                  initializer=tf.constant_initializer(0.1))
         conv1 = tf.nn.relu(
             tf.nn.bias_add(
-                tf.nn.conv2d(images, weights, strides=[1, 1, 1, 1], padding='VALID'),
+                tf.nn.conv2d(image, weights, strides=[1, 1, 1, 1], padding='VALID'),
                 biases),
             name='conv1')
 
