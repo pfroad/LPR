@@ -73,7 +73,7 @@ def load_txt_graph(dir):
 # logits1, logits2, logits3, logits4, logits5, logits6, logits7 = model.inference(x, keep_prob)
 
 
-with tf.Session(graph=load_txt_graph("./train_logs_50000/pr2.pbtxt")) as sess:
+with tf.Session(graph=load_graph("./pr2.pb")) as sess:
     sess.run(tf.global_variables_initializer())
 
     input_img = sess.graph.get_tensor_by_name("Placeholder_2:0")
@@ -86,12 +86,12 @@ with tf.Session(graph=load_txt_graph("./train_logs_50000/pr2.pbtxt")) as sess:
     logits5 = sess.graph.get_tensor_by_name("fc25/fc25:0")
     logits6 = sess.graph.get_tensor_by_name("fc26/fc26:0")
     logits7 = sess.graph.get_tensor_by_name("fc27/fc27:0")
-    print(image_array.shape)
+    print(logits7.shape)
 
     pre1, pre2, pre3, pre4, pre5, pre6, pre7 = sess.run([logits1, logits2, logits3, logits4, logits5, logits6, logits7],
                                                         feed_dict={input_img: np.reshape(image_array, [-1,72,272,3]), keep_prob: 1.0})
 
-    prediction = np.reshape(np.array([pre1, pre2, pre3, pre4, pre5, pre6, pre7]), [-1, 65])
+    prediction = np.reshape(np.array([pre1[0], pre2[0], pre3[0], pre4[0], pre5[0], pre6[0], pre7[0]]), [-1, 65])
     # print(prediction)
 
     max_index = np.argmax(prediction, axis=1)
