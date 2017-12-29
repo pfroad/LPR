@@ -13,15 +13,13 @@ class TrainData:
         self.width = width
 
     def data(self):
-        data = []
-        res = []
+        plates = []
+        labels = []
         for i in range(self.batch_size):
             num, img = self.gen_sample()
-            data.append(img)
-            data.append(num)
-            res.append(data)
-
-        return res
+            plates.append(img)
+            labels.append(num)
+        return plates, labels
 
     def rand_range(self, lo, hi):
         return lo + gp.random(hi - lo)
