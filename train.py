@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 import data.input_data as ind
-import model
+import pr_model as model
 
 import time
 import datetime

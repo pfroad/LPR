@@ -3,6 +3,8 @@ import tensorflow as tf
 import numpy as np
 import os
 
+import input_data as ind
+
 import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -30,18 +32,30 @@ def get_one_img(test):
 
     image_show = Image.open(img_dir)
     plt.imshow(image_show)
-    plt.show()
+    # plt.show()
     image = cv2.imread(img_dir)
     img = np.multiply(image, 1 / 255)
     return np.array([img])
 
 
-batch_size = 1
+def get_batch():
+    data_batch = ind.TrainData(batch_size, img_h, img_w, "./env_images", "./images")
+    data = data_batch.data()
+
+    return np.array(data)
+
+
+batch_size = 10
 img_w = 272
 img_h = 72
 channel = 3
+count = 1000
 x = tf.placeholder(tf.float32, [batch_size, img_h, img_w, channel])
 keep_prob = tf.placeholder(tf.float32)
+
+error = []
+error_count = 0.0
+total = batch_size * count
 
 test_dir = './plates'
 test_imgs = []
@@ -50,7 +64,7 @@ for file in os.listdir(test_dir):
     test_imgs.append(test_dir + "/" + file)
 test_imgs = list(test_imgs)
 
-image_array = get_one_img(test_imgs)
+# image_array = get_one_img(test_imgs)
 
 
 def load_graph(dir):
@@ -88,25 +102,37 @@ with tf.Session(graph=load_graph("./pr2.pb")) as sess:
     logits7 = sess.graph.get_tensor_by_name("fc27/fc27:0")
     print(logits7.shape)
 
-    pre1, pre2, pre3, pre4, pre5, pre6, pre7 = sess.run([logits1, logits2, logits3, logits4, logits5, logits6, logits7],
-                                                        feed_dict={input_img: np.reshape(image_array, [-1,72,272,3]), keep_prob: 1.0})
+    for step in range(count):
+        imgs = get_batch()
+        for img in imgs:
+            pre1, pre2, pre3, pre4, pre5, pre6, pre7 = sess.run([logits1, logits2, logits3, logits4, logits5, logits6, logits7],
+                                                            feed_dict={input_img: np.reshape(img[0], [-1,72,272,3]), keep_prob: 1.0})
 
-    prediction = np.reshape(np.array([pre1[0], pre2[0], pre3[0], pre4[0], pre5[0], pre6[0], pre7[0]]), [-1, 65])
-    # print(prediction)
+            prediction = np.reshape(np.array([pre1[0], pre2[0], pre3[0], pre4[0], pre5[0], pre6[0], pre7[0]]), [-1, 65])
+            # print(prediction)
 
-    max_index = np.argmax(prediction, axis=1)
-    # print(max_index)
-    # print(np.argmax(prediction, axis=0))
+            max_index = np.argmax(prediction, axis=1)
+            # print(max_index)
+            # print(np.argmax(prediction, axis=0))
 
-    line = ''
-    for i in range(prediction.shape[0]):
-        if i == 0:
-            result = np.argmax(prediction[i][0:31])
-        if i == 1:
-            result = np.argmax(prediction[i][41:65]) + 41
-        if i > 1:
-            result = np.argmax(prediction[i][31:65]) + 31
+            line = ''
+            pred_inx = []
+            for i in range(prediction.shape[0]):
+                if i == 0:
+                    result = np.argmax(prediction[i][0:31])
+                if i == 1:
+                    result = np.argmax(prediction[i][41:65]) + 41
+                if i > 1:
+                    result = np.argmax(prediction[i][31:65]) + 31
 
-        line += chars[result] + " "
+                pred_inx.append(result)
+                line += chars[result] + " "
 
-    print('predicted: ' + line)
+            if pred_inx != img[1]:
+                plate_no = ""
+                error_count += 1
+                for idx in img[1]:
+                    plate_no += chars[idx] + ""
+                print('plate no is %s, predicted is %s ' % (plate_no, line))
+
+    print("error rate: %f" % (error_count / total))

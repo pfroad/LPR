@@ -2,7 +2,7 @@
 
 import numpy as np
 import cv2
-import data.genplate as gp
+import genplate as gp
 
 
 class TrainData:
@@ -13,26 +13,26 @@ class TrainData:
         self.width = width
 
     def data(self):
-        data = []
         res = []
         for i in range(self.batch_size):
             num, img = self.gen_sample()
-            data.append(img)
-            data.append(num)
-            res.append(data)
+            res.append([np.reshape(np.sum(img / 3, axis=2), [-1, self.height, self.width, 1]), sum])
+            res.append([img, num])
 
         return res
 
-    def rand_range(self, lo, hi):
+    @staticmethod
+    def rand_range(lo, hi):
         return lo + gp.random(hi - lo)
 
     def gen_num(self):
         label = []
-        label.append(self.rand_range(0, 31))
-        label.append(self.rand_range(41, 65))
+        label.append(TrainData.rand_range(0, 31))
+        label.append(TrainData.rand_range(41, 65))
         for i in range(5):
-            label.append(self.rand_range(31, 65))
+            label.append(TrainData.rand_range(31, 65))
 
+        # print(label)
         return "".join(gp.chars[s] for s in label), label
 
     def gen_sample(self):
@@ -46,3 +46,5 @@ class TrainData:
 # imgs, labels = data_batch.data()
 #
 # print(np.array(imgs).shape)
+# for i in range(10):
+#     print(TrainData.rand_range(0, 31))

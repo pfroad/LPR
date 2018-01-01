@@ -10,6 +10,9 @@ import numpy as np
 import os
 from math import *
 
+# import sys
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 # font = ImageFont.trueType("Arial-Bold.ttf", 14)
 index = {"京": 0, "沪": 1, "津": 2, "渝": 3, "冀": 4, "晋": 5, "蒙": 6, "辽": 7, "吉": 8, "黑": 9, "苏": 10, "浙": 11, "皖": 12,
          "闽": 13, "赣": 14, "鲁": 15, "豫": 16, "鄂": 17, "湘": 18, "粤": 19, "桂": 20, "琼": 21, "川": 22, "贵": 23, "云": 24,
@@ -111,11 +114,10 @@ def addNoiseSingleChannel(ch):
 
 def addNoise(img, sdev=0.5, avg=10):
     img[:, :, 0] = addNoiseSingleChannel(img[:, :, 0])
-    img[:, :, 0] = addNoiseSingleChannel(img[:, :, 0])
-    img[:, :, 0] = addNoiseSingleChannel(img[:, :, 0])
+    img[:, :, 1] = addNoiseSingleChannel(img[:, :, 1])
+    img[:, :, 2] = addNoiseSingleChannel(img[:, :, 2])
 
     return img
-
 
 class GenPlate:
 
@@ -143,15 +145,17 @@ class GenPlate:
         return self.img
 
     def generate(self, text):
-        if len(text) == 7:
-            fg = cv2.bitwise_not(self.draw(text.encode('utf-8').decode(encoding="utf-8")))
+        # macos chinese length is 3, but windows is 1
+        if len(text) == len(chars[7]) + 6:
+            fg = cv2.bitwise_not(self.draw(text.encode("utf-8").decode(encoding="utf-8")))
             com = cv2.bitwise_or(fg, self.bg)
             com = rot(com, random(60) - 30, com.shape, 30)
             com = rotRandom(com, 10, (com.shape[1], com.shape[0]))
 
             com = tfactor(com)
             com = random_environment(com, self.plate_nos_path)
-            return addNoise(addGauss(com, 1 + random(4)))
+            com = addNoise(addGauss(com, 1 + random(4)))
+            return com
 
     def gen_plate_string(self, pos, val):
         plate_str = ""
@@ -181,5 +185,5 @@ class GenPlate:
             cv2.imwrite(output_path + "/" + str(i).zfill(2) + ".jpg", img)
 
 #
-# g = GenPlate("platech.ttf", "platechar.ttf", "../env_images")
+# g = GenPlate("platech.ttf", "platechar.ttf","../env_images", "../images")
 # g.gen_batch(15, 2, range(31, 65), "../plates", (272, 72))
