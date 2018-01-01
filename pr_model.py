@@ -11,7 +11,7 @@ import numpy as np
 # config = tf.ConfigProto()
 #
 # set_s
-def inference(inputs, keep_prob):
+def inference(images, keep_prob):
     def weight_variable(shape, dtype, stddev, name='weights'):
         return tf.get_variable(name,
                                shape=shape,
@@ -19,13 +19,13 @@ def inference(inputs, keep_prob):
                                initializer=tf.truncated_normal_initializer(stddev=stddev, dtype=tf.float32))
 
     def bias_variable(shape, dtype, name='bias'):
-        tf.get_variable(name,
-                        shape=shape,
-                        dtype=dtype,
-                        initializer=tf.constant_initializer(0.1))
+        return tf.get_variable(name,
+                               shape=shape,
+                               dtype=dtype,
+                               initializer=tf.constant_initializer(0.1))
 
-    def conv2d(inputs, weights, strides=[1, 1, 1, 1], padding='VALID'):
-        return tf.nn.conv2d(inputs, weights, strides=strides, padding=padding)
+    def conv2d(x, weights, strides=[1, 1, 1, 1], padding='VALID'):
+        return tf.nn.conv2d(x, weights, strides=strides, padding=padding)
 
     def bias_variable_2(shape, dtype, name='biases'):
         return tf.get_variable(name,
@@ -33,39 +33,39 @@ def inference(inputs, keep_prob):
                                dtype=dtype,
                                initializer=tf.truncated_normal_initializer(0.1))
 
-    def bias_add(inputs, bias, name):
-        return tf.nn.relu(tf.nn.bias_add(inputs, bias), name=name)
+    def bias_add(x, bias, op_name):
+        return tf.nn.relu(tf.nn.bias_add(x, bias), name=op_name)
 
-    def fc(inputs, kernel, bias, fc_name):
-        return tf.add(tf.matmul(inputs, kernel), bias, name=fc_name)
+    def fc(x, kernel, bias, name):
+        return tf.add(tf.matmul(x, kernel), bias, name=name)
 
     with tf.variable_scope("conv1") as scope:
         kernel = weight_variable([3, 3, 1, 32], dtype=tf.float32, stddev=0.1)
-        conv1 = bias_add(conv2d(inputs, kernel), bias_variable([32], tf.float32), name='conv1')
+        conv1 = bias_add(conv2d(images, kernel), bias_variable([32], tf.float32), op_name='conv1')
 
     with tf.variable_scope("conv2") as scope:
         kernel = weight_variable([3, 3, 32, 32], dtype=tf.float32, stddev=0.1)
-        conv2 = bias_add(conv2d(conv1, kernel), bias_variable([32], tf.float32), name='conv2')
+        conv2 = bias_add(conv2d(conv1, kernel), bias_variable([32], tf.float32), op_name='conv2')
 
     pool1 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='pooling1')
 
     with tf.variable_scope("conv3") as scope:
         kernel = weight_variable([3, 3, 32, 64], dtype=tf.float32, stddev=0.1)
-        conv3 = bias_add(conv2d(pool1, kernel), bias_variable([64], tf.float32), name='conv3')
+        conv3 = bias_add(conv2d(pool1, kernel), bias_variable([64], tf.float32), op_name='conv3')
 
     with tf.variable_scope("conv4") as scope:
         kernel = weight_variable([3, 3, 64, 64], dtype=tf.float32, stddev=0.1)
-        conv4 = bias_add(conv2d(conv3, kernel), bias_variable([64], tf.float32), name='conv4')
+        conv4 = bias_add(conv2d(conv3, kernel), bias_variable([64], tf.float32), op_name='conv4')
 
     pool2 = tf.nn.max_pool(conv4, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='pooling2')
 
     with tf.variable_scope("conv5") as scope:
         kernel = weight_variable([3, 3, 64, 128], dtype=tf.float32, stddev=0.1)
-        conv5 = bias_add(conv2d(pool2, kernel), bias_variable([128], tf.float32), name='conv5')
+        conv5 = bias_add(conv2d(pool2, kernel), bias_variable([128], tf.float32), op_name='conv5')
 
     with tf.variable_scope("conv6") as scope:
         kernel = weight_variable([3, 3, 128, 128], dtype=tf.float32, stddev=0.1)
-        conv6 = bias_add(conv2d(conv5, kernel), bias_variable([128], tf.float32), name='conv6')
+        conv6 = bias_add(conv2d(conv5, kernel), bias_variable([128], tf.float32), op_name='conv6')
 
     pool3 = tf.nn.max_pool(conv6, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='pooling3')
 

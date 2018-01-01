@@ -2,7 +2,7 @@
 
 import numpy as np
 import cv2
-import genplate as gp
+import data.genplate as gp
 
 
 class TrainData:
@@ -16,8 +16,7 @@ class TrainData:
         res = []
         for i in range(self.batch_size):
             num, img = self.gen_sample()
-            res.append([np.reshape(np.sum(img / 3, axis=2), [-1, self.height, self.width, 1]), sum])
-            res.append([img, num])
+            res.append([np.reshape(np.sum(img / 3, axis=2), [-1, self.height, self.width, 1]), num])
 
         return res
 

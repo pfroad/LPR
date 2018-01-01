@@ -12,16 +12,16 @@ img_w = 272
 img_h = 72
 num_label = 7
 batch_size = 8
-count = 20000
-starter_learning_rate = 0.01
-channel = 3
+count = 30000
+learning_rate = 10e-4
+channel = 1
 
 image_holder = tf.placeholder(tf.float32, [None, img_h, img_w, channel], name='input')
 label_holder = tf.placeholder(tf.int32, [None, num_label])
 keep_prob_val = 0.01
 keep_prob = tf.placeholder(tf.float32)
 
-learning_rate = tf.train.exponential_decay(starter_learning_rate, count, decay_steps=200, decay_rate=0.95, staircase=True)
+# learning_rate = tf.train.exponential_decay(starter_learning_rate, count, decay_steps=200, decay_rate=0.95, staircase=True)
 
 logs_train_dir = './train_logs/'
 
@@ -51,18 +51,17 @@ sess.run(tf.global_variables_initializer())
 start_time = time.time()
 
 for step in range(count):
-    data = get_batch()
-    # print(data)
+    plates, labels = get_batch()
+    # for img in data:
+    #   print(plates[1])
+    s2 = time.time()
+    # image_holder
+    feed_dict = {image_holder: plates, label_holder: labels, keep_prob: keep_prob_val}
+    _, _, _, _, _, _, _, tra_loss1, tra_loss2, tra_loss3, tra_loss4, tra_loss5, tra_loss6, tra_loss7, acc, summary_str \
+        = sess.run([op1, op2, op3, op4, op5, op6, op7, loss1, loss2, loss3, loss4, loss5, loss6, loss7, train_acc, sum_op], feed_dict)
 
-    for img in data:
-        s2 = time.time()
-
-        feed_dict = {image_holder: np.reshape(img[0], [1, img_h, img_w, channel]), label_holder: np.reshape(img[1], [1, num_label]), keep_prob: keep_prob_val}
-        _, _, _, _, _, _, _, tra_loss1, tra_loss2, tra_loss3, tra_loss4, tra_loss5, tra_loss6, tra_loss7, acc, summary_str \
-            = sess.run([op1, op2, op3, op4, op5, op6, op7, loss1, loss2, loss3, loss4, loss5, loss6, loss7, train_acc, sum_op], feed_dict)
-
-        train_writer.add_summary(summary_str, step)
-        losses = tra_loss1 + tra_loss2 + tra_loss3 + tra_loss4 + tra_loss5 + tra_loss6 + tra_loss7
+    train_writer.add_summary(summary_str, step)
+    losses = tra_loss1 + tra_loss2 + tra_loss3 + tra_loss4 + tra_loss5 + tra_loss6 + tra_loss7
 
     if step % 10 == 0:
         print('%s : Step %d,train_loss = %.2f,acc= %.2f,sec/batch=%.3f' %
