@@ -23,7 +23,7 @@ keep_prob = tf.placeholder(tf.float32)
 
 learning_rate = 1e-4
 
-logs_train_dir = './train_logs_2/'
+logs_train_dir = './train_logs_30000/'
 
 
 def get_batch():
@@ -52,7 +52,7 @@ start_time = time.time()
 for step in range(count):
     plates, labels = get_batch()
     # for img in data:
-    #     print(img[1])
+    #   print(plates[1])
     s2 = time.time()
     # image_holder
     feed_dict = {image_holder: plates, label_holder: labels, keep_prob: keep_prob_val}

@@ -27,12 +27,18 @@ def get_one_img(test):
     img_dir = test[ind]
 
     image_show = Image.open(img_dir)
-    plt.imshow(image_show)
+    # plt.imshow(image_show)
+    image_show = np.array(image_show)
+    image_show = image_show[:, :, 0]
+    # image_show = np.mean(image_show, -1)
+    plt.imshow(image_show, cmap = plt.cm.gray)
     plt.show()
-    image = cv2.imread(img_dir)
+    image = cv2.imread(img_dir, cv2.IMREAD_GRAYSCALE)
     img = np.multiply(image, 1 / 255)
     return np.array([img])
 
+
+# get_one_img('./plates/03.jpg')
 
 batch_size = 1
 img_w = 272

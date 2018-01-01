@@ -11,201 +11,107 @@ import numpy as np
 # config = tf.ConfigProto()
 #
 # set_s
-def inference(image, keep_prob):
-    with tf.variable_scope("conv1") as scope:
-        weights = tf.get_variable('weights',
-                                  shape=[3, 3, 3, 32],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.1, dtype=tf.float32))
-        biases = tf.get_variable("bias",
-                                 shape=[32],
-                                 dtype=tf.float32,
-                                 initializer=tf.constant_initializer(0.1))
-        conv1 = tf.nn.relu(
-            tf.nn.bias_add(
-                tf.nn.conv2d(image, weights, strides=[1, 1, 1, 1], padding='VALID'),
-                biases),
-            name=scope)
+def inference(images, keep_prob):
+    def weight_variable(shape, stddev, name="weights"):
+        initial = tf.truncated_normal(shape, dtype=tf.float32, stddev=stddev)
+        return tf.Variable(initial, name=name)
 
-    with tf.variable_scope("conv2") as scope:
-        weights = tf.get_variable('weights',
-                                  shape=[3, 3, 32, 32],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.1, dtype=tf.float32))
-        biases = tf.get_variable("bias",
-                                 shape=[32],
-                                 dtype=tf.float32,
-                                 initializer=tf.constant_initializer(0.1))
-        conv2 = tf.nn.relu(
-            tf.nn.bias_add(
-                tf.nn.conv2d(conv1, weights, strides=[1, 1, 1, 1], padding='VALID'),
-                biases),
-            name=scope)
+    def bias_variable(shape, name="biases"):
+        initial = tf.constant(0.1, dtype=tf.float32, shape=shape)
+        return tf.Variable(initial, name=name)
 
-    with tf.variable_scope("max_pooling1") as scope:
+    def bias_variable_2(shape, name="biases"):
+        initial = tf.truncated_normal(shape=shape, mean=0.1, dtype=tf.float32)
+        return tf.Variable(initial, name=name)
+
+    def conv2d(input, kernel):
+        return tf.nn.conv2d(input, kernel, strides=[1, 1, 1, 1], padding='VALID')
+
+    with tf.name_scope("conv1") as scope:
+        kernel = weight_variable(shape=[3, 3, 3, 32], stddev=0.1)
+        biases = bias_variable(shape=[32])
+        conv1 = tf.nn.relu(tf.nn.bias_add(conv2d(images, kernel), biases), name=scope)
+
+    with tf.name_scope("conv2") as scope:
+        kernel = weight_variable(shape=[3, 3, 32, 32], stddev=0.1)
+        biases = bias_variable(shape=[32])
+        conv2 = tf.nn.relu(tf.nn.bias_add(conv2d(conv1, kernel), biases), name=scope)
+
+    with tf.name_scope("max_pooling1") as scope:
         pool1 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='pooling1')
 
-    with tf.variable_scope("conv3") as scope:
-        weights = tf.get_variable('weights',
-                                  shape=[3, 3, 32, 64],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.1, dtype=tf.float32))
-        biases = tf.get_variable("bias",
-                                 shape=[64],
-                                 dtype=tf.float32,
-                                 initializer=tf.constant_initializer(0.1))
-        conv3 = tf.nn.relu(
-            tf.nn.bias_add(
-                tf.nn.conv2d(pool1, weights, strides=[1, 1, 1, 1], padding='VALID'),
-                biases),
-            name=scope)
+    with tf.name_scope("conv3") as scope:
+        kernel = weight_variable(shape=[3, 3, 32, 64], stddev=0.1)
+        biases = bias_variable(shape=[64])
+        conv3 = tf.nn.relu(tf.nn.bias_add(conv2d(pool1, kernel), biases), name=scope)
 
-    with tf.variable_scope("conv4") as scope:
-        weights = tf.get_variable('weights',
-                                  shape=[3, 3, 64, 64],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.1, dtype=tf.float32))
-        biases = tf.get_variable("bias",
-                                 shape=[64],
-                                 dtype=tf.float32,
-                                 initializer=tf.constant_initializer(0.1))
-        conv4 = tf.nn.relu(
-            tf.nn.bias_add(
-                tf.nn.conv2d(conv3, weights, strides=[1, 1, 1, 1], padding='VALID'),
-                biases),
-            name=scope)
+    with tf.name_scope("conv4") as scope:
+        kernel = weight_variable(shape=[3, 3, 64, 64], stddev=0.1)
+        biases = bias_variable(shape=[64])
+        conv4 = tf.nn.relu(tf.nn.bias_add(conv2d(conv3, kernel), biases), name=scope)
 
-    with tf.variable_scope("max_pooling2") as scope:
+    with tf.name_scope("max_pooling2") as scope:
         pool2 = tf.nn.max_pool(conv4, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name='pooling2')
 
-    with tf.variable_scope("conv5") as scope:
-        weights = tf.get_variable('weights',
-                                  shape=[3, 3, 64, 128],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.1, dtype=tf.float32))
-        biases = tf.get_variable("bias",
-                                 shape=[128],
-                                 dtype=tf.float32,
-                                 initializer=tf.constant_initializer(0.1))
-        conv5 = tf.nn.relu(
-            tf.nn.bias_add(
-                tf.nn.conv2d(pool2, weights, strides=[1, 1, 1, 1], padding='VALID'),
-                biases),
-            name=scope)
+    with tf.name_scope("conv5") as scope:
+        kernel = weight_variable(shape=[3, 3, 64, 128], stddev=0.1)
+        biases = bias_variable(shape=[128])
+        conv5 = tf.nn.relu(tf.nn.bias_add(conv2d(pool2, kernel), biases), name=scope)
 
-    with tf.variable_scope("conv6") as scope:
-        weights = tf.get_variable('weights',
-                                  shape=[3, 3, 128, 128],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.1, dtype=tf.float32))
-        biases = tf.get_variable("bias",
-                                 shape=[128],
-                                 dtype=tf.float32,
-                                 initializer=tf.constant_initializer(0.1))
-        conv6 = tf.nn.relu(
-            tf.nn.bias_add(
-                tf.nn.conv2d(conv5, weights, strides=[1, 1, 1, 1], padding='VALID'),
-                biases),
-            name=scope)
+    with tf.name_scope("conv6") as scope:
+        kernel = weight_variable(shape=[3, 3, 128, 128], stddev=0.1)
+        biases = bias_variable(shape=[128])
+        conv6 = tf.nn.relu(tf.nn.bias_add(conv2d(conv5, kernel), biases), name=scope)
 
-    with tf.variable_scope("max_pooling3") as scope:
+    with tf.name_scope("max_pooling3") as scope:
         pool3 = tf.nn.max_pool(conv6, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='VALID', name=scope)
 
-    with tf.variable_scope("fc1") as scope:
+    with tf.name_scope("fc1") as scope:
         shape = pool3.get_shape()
         flattened_shape = shape[1].value * shape[2].value * shape[3].value
         reshape = tf.reshape(pool3, [-1, flattened_shape])
 
         fc1 = tf.nn.dropout(reshape, keep_prob, name=scope)
 
-    with tf.variable_scope("f2") as scope:
-        weights = tf.get_variable("weight",
-                                  shape=[flattened_shape, 65],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
+    with tf.name_scope("f2") as scope:
+        kernel = weight_variable(shape=[flattened_shape, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc2 = tf.nn.bias_add(tf.matmul(fc1, kernel), biases, name=scope)
 
-        fc2 = tf.nn.relu(tf.matmul(fc1, weights) + biases, name=scope)
+    with tf.name_scope("fc31") as scope:
+        kernel = weight_variable(shape=[65, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc31 = tf.nn.bias_add(tf.matmul(fc2, kernel), biases, name=scope)
 
-    with tf.variable_scope("fc31") as scope:
-        weights = tf.get_variable("weights",
-                                  shape=[65, 31],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
-        fc31 = tf.nn.relu(tf.matmul(fc2, weights) + biases, name=scope)
+    with tf.name_scope("fc32") as scope:
+        kernel = weight_variable(shape=[65, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc32 = tf.nn.bias_add(tf.matmul(fc2, kernel), biases, name=scope)
 
-    with tf.variable_scope("fc32") as scope:
-        weights = tf.get_variable("weights",
-                                  shape=[65, 24],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
-        fc32 = tf.nn.relu(tf.matmul(fc2, weights) + biases, name=scope)
+    with tf.name_scope("fc33") as scope:
+        kernel = weight_variable(shape=[65, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc33 = tf.nn.bias_add(tf.matmul(fc2, kernel), biases, name=scope)
 
-    with tf.variable_scope("fc33") as scope:
-        weights = tf.get_variable("weights",
-                                  shape=[65, 65],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
-        fc33 = tf.nn.relu(tf.matmul(fc2, weights) + biases, name=scope)
+    with tf.name_scope("fc34") as scope:
+        kernel = weight_variable(shape=[65, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc34 = tf.nn.bias_add(tf.matmul(fc2, kernel), biases, name=scope)
 
-    with tf.variable_scope("fc34") as scope:
-        weights = tf.get_variable("weights",
-                                  shape=[65, 65],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
-        fc34 = tf.nn.relu(tf.matmul(fc2, weights) + biases, name=scope)
+    with tf.name_scope("fc35") as scope:
+        kernel = weight_variable(shape=[65, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc35 = tf.nn.bias_add(tf.matmul(fc2, kernel), biases, name=scope)
 
-    with tf.variable_scope("fc35") as scope:
-        weights = tf.get_variable("weights",
-                                  shape=[65, 65],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
-        fc35 = tf.nn.relu(tf.matmul(fc2, weights) + biases, name=scope)
+    with tf.name_scope("fc36") as scope:
+        kernel = weight_variable(shape=[65, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc36 = tf.nn.bias_add(tf.matmul(fc2, kernel), biases, name=scope)
 
-    with tf.variable_scope("fc36") as scope:
-        weights = tf.get_variable("weights",
-                                  shape=[65, 65],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
-        fc36 = tf.nn.relu(tf.matmul(fc2, weights) + biases, name=scope)
-
-    with tf.variable_scope("fc37") as scope:
-        weights = tf.get_variable("weights",
-                                  shape=[65, 65],
-                                  dtype=tf.float32,
-                                  initializer=tf.truncated_normal_initializer(stddev=0.005, dtype=tf.float32))
-        biases = tf.get_variable("biases",
-                                 shape=[65],
-                                 dtype=tf.float32,
-                                 initializer=tf.truncated_normal_initializer(0.1))
-        fc37 = tf.nn.relu(tf.matmul(fc2, weights) + biases, name=scope)
+    with tf.name_scope("fc37") as scope:
+        kernel = weight_variable(shape=[65, 65], stddev=0.005)
+        biases = bias_variable_2(shape=[65])
+        fc37 = tf.nn.bias_add(tf.matmul(fc2, kernel), biases, name=scope)
 
     return fc31, fc32, fc33, fc34, fc35, fc36, fc37
 

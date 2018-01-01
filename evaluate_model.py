@@ -3,6 +3,8 @@ import tensorflow as tf
 import numpy as np
 import os
 
+import data.input_data as ind
+
 import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -22,6 +24,11 @@ chars = ["京", "沪", "津", "渝", "冀", "晋", "蒙", "辽", "吉", "黑", "
          "Y", "Z"
          ]
 
+batch_size = 10
+img_w = 272
+img_h = 72
+channel = 3
+
 
 def get_one_img(test):
     n = len(test)
@@ -36,10 +43,14 @@ def get_one_img(test):
     return np.array([img])
 
 
-batch_size = 1
-img_w = 272
-img_h = 72
-channel = 3
+def get_batch():
+    data_batch = ind.TrainData(batch_size, img_h, img_w, "./env_images", "./images")
+    plates, labels = data_batch.data()
+    return np.array(plates), np.array(labels)
+
+pls, lbs = get_batch()
+print(lbs)
+
 x = tf.placeholder(tf.float32, [batch_size, img_h, img_w, channel])
 keep_prob = tf.placeholder(tf.float32)
 
@@ -75,8 +86,8 @@ def load_txt_graph(model_pb):
 
 with tf.Session(graph=load_graph("./train_logs_50000/pr-model.pb", {"Placeholder:0": x})) as sess:
     # sess.run(tf.global_variables_initializer())
-    logits1 = sess.graph.get_tensor_by_name("fc21/fc21:0")
     logits2 = sess.graph.get_tensor_by_name("fc22/fc22:0")
+    logits1 = sess.graph.get_tensor_by_name("fc21/fc21:0")
     logits3 = sess.graph.get_tensor_by_name("fc23/fc23:0")
     logits4 = sess.graph.get_tensor_by_name("fc24/fc24:0")
     logits5 = sess.graph.get_tensor_by_name("fc25/fc25:0")
